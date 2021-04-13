@@ -1,97 +1,105 @@
-document.addEventListener('DOMContentLoaded', () => {
-  'use strict';
-  const registrationBtn = document.getElementById('registerUser');
-  const output = document.getElementById('list');
-  const username = document.getElementById('username');
-  const login = document.getElementById('login');
+'use strict'
 
-  let userData = [];
+const title = document.querySelector('#username'),
+      registrBtn = document.querySelector('#registr_user'),
+      login = document.querySelector('#login'),
+      wrapper = document.querySelector('#list'),
+      months = ["Января", "Февраля", "Марта", "Апреля", "Мая", "Июня", "Июля", "Августа", "Сентября", "Октября", "Ноября", "Декабря"],
+      myDate = new Date();
 
-  if (localStorage.getItem('users')) {
-    userData = JSON.parse(localStorage.getItem('users'));
-  };
+let zero = function(a) {
+    if (a < 10) {
+        return '0' + a;
+    }
+    return a;
+};
 
-  const render = () => {
-    output.textContent = '';
+let date = zero(myDate.getDate())+ ' ' + months[myDate.getMonth()] + ' ' + myDate.getFullYear() + ' г., ' + zero(myDate.getHours()) + ':' + zero(myDate.getMinutes()) + ':' + zero(myDate.getSeconds());
 
-    userData.forEach((item, index) => {
-      const li = document.createElement('li');
-      li.classList.add('user__item');
+let arr = [];
 
-      li.innerHTML = `Имя: ${item.userName}, фамилия: ${item.userSurname}, зарегистрирован: ${item.regDate} <button class="remove__btn">Удалить</button>`;
+let jsonSave = function() {
+    let a = JSON.stringify(arr);
+    localStorage.toDo = a;
+};
 
-      output.append(li);
+let jsonDisplay = function() {
+    if (localStorage.toDo) {
+        arr = JSON.parse(localStorage.toDo);
+    }
+};
 
-      const removeBtn = li.querySelector('.remove__btn');
+const render = function() {
+    wrapper.innerHTML = '';
+    arr.forEach(function(item, i) {
+        const li = document.createElement('li');
+        li.innerHTML = `<div> Имя: ${item.firstName}, Фамилия: ${item.lastName}, зарегистрирован ${item.regDate} </div> <button class="delete_user">&#10008;</button>`;
+        wrapper.append(li);
 
-      removeBtn.addEventListener('click', () => {
-        userData.splice(index, 1);
-        render();
-      });
+        const btnRemove = li.querySelector('.delete_user');
+        btnRemove.addEventListener('click', function() {
+            arr.splice(i, 1);
+            jsonSave();
+            jsonDisplay();
+            render();
+        });
     });
+};
 
-    localStorage.setItem('users', JSON.stringify(userData));
-  };
+registrBtn.addEventListener('click', function() {
+    let name;
 
-  registrationBtn.addEventListener('click', (event) => {
-    event.preventDefault();
+    do {
+        name = prompt('Введите через пробел Имя и Фамилию пользователя');
+    } while (name.split(/\s+/).length === 1 || name.split(/\s+/).length > 2 || name.trim() === '');
 
-    let userName = prompt('Введите через пробел Имя и Фамилию пользователя!');
-    userName = userName.split(' ');
+    let log = prompt('Введите Логин'),
+        pass = prompt('Введите пароль');
 
-    if (userName.join('').trim() !== '' && userName.length > 1 && userName[1] !== '') {
-      const newUsers = {
-        userName: userName[0],
-        userSurname: userName[1],
-        login: prompt('Введите логин!'),
-        password: prompt('Введите пароль!'),
-        regDate: '',
-        regDateApp: () => {
-          let months = ["Января", "Февраля", "Марта", "Апреля", "Мая", "Июня", "Июля", "Августа", "Сентября", "Октября", "Ноября", "Декабря"];
+    console.log(name);
 
-          let date = new Date();
-          let currentDay = date.getDate();
-          let year = date.getFullYear();
-          let month = date.getMonth();
-          let hours = date.getHours();
-          let minutes = date.getMinutes();
-          let seconds = date.getSeconds();
-
-          let checkTime = time => {
-            if (time < 10) {
-              time = "0" + time;
-            };
-            return time;
-          };
-
-          newUsers.regDate = `${currentDay} ${months[month]} ${year} г., ${checkTime(hours)}:${checkTime(minutes)}:${checkTime(seconds)}`;
-        }
-      };
-      newUsers.regDateApp();
-      userData.push(newUsers);
-    } else {
-      alert('Введите корректные данные!!!');
+    const newUser = {
+        firstName: name.split(' ')[0],
+        lastName: name.split(' ')[1],
+        login: log,
+        pasword: pass,
+        regDate: date
     };
 
+    arr.push(newUser);
+    jsonSave();
     render();
-  });
-
-  login.addEventListener('click', (event) => {
-    event.preventDefault();
-
-    const userLogin = prompt('Введите логин!');
-    const userPassword = prompt('Введите пароль!');
-
-    userData.find(item => {
-      if (item.login === userLogin && item.password === userPassword) {
-        username.textContent = item.userName;
-      } else if (item.login !== userLogin && item.password !== userPassword) {
-        username.textContent = 'Аноним';
-        alert('Введите правильные данные!');
-        window.location.reload();
-      };
-    });
-  });
-
-  render();
 });
+
+login.addEventListener('click', function() {
+    let a = prompt('Введите Логин'),
+        b,
+        c,
+        d;
+
+    arr.find(function(item) {
+        if (a === item.login) {
+            b = item.login;
+        }
+    });
+
+    if (a !== b) {
+        alert('Пользователя с таким логином не найдено');
+    } else {
+        c = prompt('Введите пароль');
+        arr.find(function(item) {
+            if (a === item.login && c === item.pasword) {
+                d = item.pasword;
+            }
+        });
+        if (a === b && c === d) {
+            title.innerHTML = b;
+            
+        } else {
+            alert('Неверный пароль');
+        } 
+    }
+});
+
+jsonDisplay();
+render();
